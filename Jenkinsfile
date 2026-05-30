@@ -2,6 +2,16 @@ pipeline {
     agent any
 
     stages {
+        
+        stage('Test') {
+            steps {
+                echo 'Jenkins is working'
+                sh 'whoami'
+                sh 'pwd'
+            }
+        }
+    }
+}{
 
         stage('Clone Repository') {
             steps {
