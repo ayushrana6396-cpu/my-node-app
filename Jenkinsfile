@@ -10,8 +10,6 @@ pipeline {
                 sh 'pwd'
             }
         }
-    }
-}{
 
         stage('Clone Repository') {
             steps {
