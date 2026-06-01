@@ -1,47 +1,50 @@
 pipeline {
     agent any
 
-    stages {
-        
-        stage('Test') {
-            steps {
-                echo 'Jenkins is working'
-                sh 'whoami'
-                sh 'pwd'
-            }
-        }
+    environment {
+        DOCKER_HUB_REPO = 'ayushmain/myapp'
+        IMAGE_TAG       = "${5}"
+    }
 
-        stage('Clone Repository') {
+    stages {
+        stage('Checkout') {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/ayushrana6396-cpu/my-node-app.git'
             }
         }
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Build Started'
-                sh 'pwd'
-                sh 'ls -la'
+                script {
+                    dockerImage = docker.build("${DOCKER_HUB_REPO}:${IMAGE_TAG}")
+                }
             }
         }
 
-        stage('Deploy to Apache Server') {
+        stage('Test Image') {
             steps {
-                echo 'Deploying Website to Apache'
-                sh 'cp -r ./* /var/www/html/'
+                script {
+                    dockerImage.inside {
+                        sh 'echo Container is healthy'
+                    }
+                }
             }
         }
 
-        stage('Verify Deployment') {
+        stage('Push to Docker Hub') {
             steps {
-                echo 'Checking Apache Directory'
-                sh 'ls -la /var/www/html/'
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
+                        dockerImage.push("${IMAGE_TAG}")
+                        dockerImage.push('latest')
+                    }
+                }
             }
         }
     }
 
-    post {
+         post {
         success {
             echo 'Website Successfully Deployed to Apache Server'
         }
